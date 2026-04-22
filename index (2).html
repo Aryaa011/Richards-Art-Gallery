@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Richard's Art Gallery</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Josefin+Sans:wght@100;200;300&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f5f0e8;--dark:#0a0806}
+body{background:var(--dark);color:var(--cream);font-family:'Josefin Sans',sans-serif;overflow:hidden;height:100vh;width:100vw}
+#entry{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--dark);transition:opacity 1.2s ease}
+#entry.out{opacity:0;pointer-events:none}
+.ebg{position:absolute;inset:0;background:radial-gradient(ellipse at center,#1a140a,#0a0806)}
+.ebg::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 80px,rgba(201,168,76,.03) 80px,rgba(201,168,76,.03) 81px),repeating-linear-gradient(90deg,transparent,transparent 80px,rgba(201,168,76,.03) 80px,rgba(201,168,76,.03) 81px)}
+.ec{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center}
+.eline{width:1px;height:60px;background:linear-gradient(to bottom,transparent,var(--gold));margin-bottom:32px;animation:gline 1.5s ease forwards;transform-origin:top}
+@keyframes gline{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+.elabel{font-size:10px;letter-spacing:6px;color:var(--gold);text-transform:uppercase;margin-bottom:20px;opacity:0;animation:fup 1s .5s ease forwards}
+.etitle{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(42px,7vw,90px);line-height:1;color:var(--cream);opacity:0;animation:fup 1s .8s ease forwards;margin-bottom:8px}
+.esub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(16px,2.5vw,28px);color:rgba(245,240,232,.5);opacity:0;animation:fup 1s 1s ease forwards;margin-bottom:60px}
+@keyframes fup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+#ebtn{opacity:0;animation:fup 1s 1.3s ease forwards;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Josefin Sans',sans-serif;font-weight:200;font-size:11px;letter-spacing:5px;text-transform:uppercase;padding:16px 48px;cursor:pointer;position:relative;overflow:hidden;transition:color .4s}
+#ebtn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-101%);transition:transform .4s}
+#ebtn:hover{color:var(--dark)}
+#ebtn:hover::before{transform:translateX(0)}
+#ebtn span{position:relative;z-index:1}
+#loader{position:fixed;inset:0;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--dark);transition:opacity 1s}
+#loader.out{opacity:0;pointer-events:none}
+.ltitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--gold);margin-bottom:40px;letter-spacing:2px}
+.ptrack{width:300px;height:1px;background:rgba(201,168,76,.2);margin-bottom:20px;position:relative}
+.pfill{height:100%;background:var(--gold);width:0%;transition:width .4s;position:relative}
+.pfill::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:8px;height:8px;background:var(--gold-light);border-radius:50%;box-shadow:0 0 10px var(--gold)}
+.ptext{font-size:10px;letter-spacing:4px;color:rgba(201,168,76,.6);text-transform:uppercase}
+#c{position:fixed;inset:0;display:block;opacity:0;transition:opacity 1.5s}
+#c.vis{opacity:1}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10;opacity:0;transition:opacity .5s}
+#hud.vis{opacity:1}
+.crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:rgba(201,168,76,.8)}
+.crosshair::before{width:1px;height:12px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.crosshair::after{width:12px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.htitle{position:absolute;top:32px;left:40px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(201,168,76,.7);letter-spacing:2px}
+#cpanel{position:absolute;bottom:32px;left:40px;background:rgba(10,8,6,.75);border:1px solid rgba(201,168,76,.2);padding:16px 20px;backdrop-filter:blur(8px);pointer-events:all}
+.ctitle{font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:14px;border-bottom:1px solid rgba(201,168,76,.2);padding-bottom:10px}
+.crow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.key{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold-light);font-size:9px;letter-spacing:1px;padding:3px 7px;min-width:24px;text-align:center}
+.clabel{font-size:9px;letter-spacing:2px;color:rgba(245,240,232,.5);text-transform:uppercase}
+#ctl{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#ctl .msg{background:rgba(10,8,6,.85);border:1px solid rgba(201,168,76,.4);padding:14px 28px;font-size:10px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;backdrop-filter:blur(8px);transition:opacity .5s;pointer-events:all;cursor:pointer}
+#ctl.hidden .msg{opacity:0;pointer-events:none}
+#esch{position:fixed;top:32px;right:40px;z-index:11;font-size:9px;letter-spacing:3px;color:rgba(245,240,232,.3);text-transform:uppercase;opacity:0;transition:opacity .5s;pointer-events:none}
+#esch.vis{opacity:1}
+#phint{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(10,8,6,.85);border:1px solid rgba(201,168,76,.4);padding:10px 24px;font-size:9px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;backdrop-filter:blur(8px);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}
+#phint.show{opacity:1}
+#counter{position:fixed;top:32px;left:50%;transform:translateX(-50%);z-index:11;font-size:9px;letter-spacing:4px;color:rgba(201,168,76,.5);text-transform:uppercase;opacity:0;transition:opacity .5s;pointer-events:none;white-space:nowrap}
+#counter.vis{opacity:1}
+#audio-btn{position:fixed;bottom:32px;right:40px;z-index:11;background:rgba(10,8,6,.7);border:1px solid rgba(201,168,76,.3);color:rgba(201,168,76,.7);font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:8px 16px;cursor:pointer;pointer-events:all;transition:all .2s;opacity:0}
+#audio-btn.vis{opacity:1}
+#audio-btn:hover{border-color:var(--gold);color:var(--gold)}
+#panel{position:fixed;top:0;right:-460px;width:420px;height:100vh;z-index:50;background:rgba(10,8,6,.94);border-left:1px solid rgba(201,168,76,.2);backdrop-filter:blur(20px);transition:right .5s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+#panel.open{right:0}
+.ph{padding:28px 32px 20px;border-bottom:1px solid rgba(201,168,76,.15);display:flex;justify-content:space-between;align-items:flex-start}
+.plabel{font-size:8px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.ptitle{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;line-height:1.2;color:var(--cream);max-width:280px}
+.pclose{background:none;border:1px solid rgba(201,168,76,.3);color:var(--gold);width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px;transition:background .2s}
+.pclose:hover{background:rgba(201,168,76,.1)}
+.pbody{flex:1;overflow-y:auto;padding:28px 32px;scrollbar-width:none}
+.pbody::-webkit-scrollbar{display:none}
+.airesp{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;line-height:1.75;color:rgba(245,240,232,.85);min-height:80px}
+.pdiv{width:40px;height:1px;background:rgba(201,168,76,.3);margin:24px 0}
+.pmeta{font-size:9px;letter-spacing:3px;color:rgba(245,240,232,.3);text-transform:uppercase;line-height:2}
+.pfooter{padding:20px 32px;border-top:1px solid rgba(201,168,76,.1);font-size:8px;letter-spacing:2px;color:rgba(201,168,76,.3);text-transform:uppercase}
+#joy-wrap{position:fixed;bottom:40px;left:40px;z-index:30;display:none;pointer-events:all}
+#joy-base{width:90px;height:90px;border-radius:50%;background:rgba(10,8,6,.6);border:1px solid rgba(201,168,76,.3);position:relative;touch-action:none}
+#joy-knob{width:36px;height:36px;border-radius:50%;background:rgba(201,168,76,.5);border:1px solid var(--gold);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+@media(max-width:768px){
+  /* Entry screen */
+  .etitle{font-size:clamp(36px,10vw,70px)}
+  .esub{font-size:clamp(14px,4vw,22px);margin-bottom:40px}
+  #ebtn{padding:14px 36px;font-size:10px;letter-spacing:3px}
+
+  /* Info panel slides up from bottom */
+  #panel{top:auto;bottom:-100vh;right:0;width:100vw;height:78vh;border-left:none;border-top:1px solid rgba(201,168,76,.2);transition:bottom .5s cubic-bezier(.4,0,.2,1)}
+  #panel.open{bottom:0;right:0}
+
+  /* Show joystick */
+  #joy-wrap{display:block}
+
+  /* Hide desktop-only elements */
+  #cpanel{display:none}
+  .lhint{display:none}
+  #esch{font-size:8px;letter-spacing:2px}
+
+  /* Counter and audio btn repositioned */
+  #counter{font-size:8px;letter-spacing:2px;top:16px}
+  #audio-btn{bottom:160px;right:16px;font-size:8px;padding:6px 12px}
+
+  /* Proximity hint smaller */
+  #phint{font-size:8px;letter-spacing:2px;padding:8px 16px;bottom:160px;max-width:90vw;text-align:center;white-space:normal}
+
+  /* HUD title smaller */
+  .htitle{font-size:11px;top:16px;left:16px}
+
+  /* Panel text sizes */
+  .ptitle{font-size:22px}
+  .airesp{font-size:15px;line-height:1.65}
+  .ph{padding:20px 20px 16px}
+  .pbody{padding:20px 20px}
+  .pfooter{padding:14px 20px}
+  .pmeta{font-size:8px}
+}
+
+@media(max-width:480px){
+  .etitle{font-size:clamp(32px,12vw,56px)}
+  #panel{height:82vh}
+  .ptitle{font-size:20px}
+  .airesp{font-size:14px}
+  #audio-btn{bottom:170px}
+}
+</style>
+</head>
+<body>
+<div id="entry">
+  <div class="ebg"></div>
+  <div class="ec">
+    <div class="eline"></div>
+    <div class="elabel">CC-BY-4.0 &nbsp;·&nbsp; shinymagic</div>
+    <div class="etitle">Richard's<br>Art Gallery</div>
+    <div class="esub">An intimate audio tour</div>
+    <button id="ebtn" onclick="beginLoad()"><span>Enter Museum</span></button>
+  </div>
+</div>
+<div id="loader">
+  <div class="ltitle">Preparing the gallery…</div>
+  <div class="ptrack"><div class="pfill" id="pf"></div></div>
+  <div class="ptext" id="pt">Decoding…</div>
+</div>
+<canvas id="c"></canvas>
+<div id="ctl"><div class="msg" onclick="doLock()">Click to explore &nbsp;·&nbsp; WASD to move</div></div>
+<div id="hud">
+  <div class="htitle">Richard's Art Gallery</div>
+  <div class="crosshair"></div>
+  <div id="cpanel">
+    <div class="ctitle">Navigation</div>
+    <div class="crow"><span class="key">W</span><span class="clabel">Forward</span></div>
+    <div class="crow"><span class="key">S</span><span class="clabel">Backward</span></div>
+    <div class="crow"><span class="key">A</span><span class="clabel">Strafe left</span></div>
+    <div class="crow"><span class="key">D</span><span class="clabel">Strafe right</span></div>
+    <div class="crow"><span class="key">Mouse</span><span class="clabel">Look</span></div>
+    <div class="crow"><span class="key">E</span><span class="clabel">Inspect artwork</span></div>
+    <div class="crow"><span class="key">ESC</span><span class="clabel">Release cursor</span></div>
+  </div>
+</div>
+<div id="esch">Press ESC to release cursor</div>
+<div id="counter">0 / 13 artworks discovered</div>
+<button id="audio-btn" onclick="toggleAudio()">♪ MUTE</button>
+<div id="phint"></div>
+<div id="panel">
+  <div class="ph">
+    <div><div class="plabel">Artwork</div><div class="ptitle" id="ptitle">—</div></div>
+    <button class="pclose" onclick="closePanel()">✕</button>
+  </div>
+  <div class="pbody">
+    <div class="airesp" id="airesp"></div>
+    <div class="pdiv"></div>
+    <div class="pmeta" id="pmeta"></div>
+  </div>
+  <div class="pfooter">Richard's Art Gallery &nbsp;·&nbsp; shinymagic · CC-BY-4.0</div>
+</div>
+<div id="joy-wrap"><div id="joy-base"><div id="joy-knob"></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+const GLB_URL = "richards_art_gallery_-_audio_tour.glb";
+</script>
+
+
+<script>
+const ARTWORKS = {
+  'k_loveknot':   { title:'Loveknot — Shetland Pony',    medium:'Pencil drawing', location:'Gallery Wall', wpos:[5.38,1.65,-1.56],   desc:`A Shetland Pony drawn in fine pencil, the name Loveknot inscribed beneath. Richard captures the pony's heavy forelock and steady gaze with the patience of someone who has spent long hours in quiet observation. Every strand of the mane is placed with care.` },
+  'k_jag':        { title:'Jag — Dog Portrait',           medium:'Pencil drawing', location:'Gallery Wall', wpos:[5.38,1.65,-1.56],   desc:`A dark dog portrait rendered in deep graphite tones — close in, affectionate, the subject caught in a moment of quiet alertness. Richard draws animals the same way he draws people: with the full weight of attention, finding character in the set of an ear or the depth of an eye.` },
+  'k_boat':       { title:'Shore Scene',                  medium:'Pencil drawing', location:'Gallery Wall', wpos:[-2.14,1.65,-1.56],  desc:`A weathered rowing boat rests on a grey shore, birds scattered across still water behind it. Richard draws without sentiment — just the honest weight of old wood, a flat tide, and an afternoon going quietly nowhere. The scene is utterly still and completely alive.` },
+  'k_endframe':   { title:'End Frame',                    medium:'Mixed media',    location:'Gallery Wall', wpos:[-1.5,1.65,-1.56],   desc:`An elaborate ornate silver frame houses a Lockett Portraits composition — a pug in graphite beside jewel-like decorative forms, the studio name lettered beneath. The gallery's most decorative work, where fine animal portraiture meets bespoke frame-craft.` },
+  'k_squirrel':   { title:'Squirrel',                     medium:'Pencil drawing', location:'Gallery Wall', wpos:[-5.54,1.65,-1.64],  desc:`A red squirrel clings to dark bark, its back-lit tail glowing pale against the shadow. Richard carved a putty rubber to lift the bright streaks of fur — the outline, the tail, the caught light — giving the creature an almost luminous quality against the dark wood.` },
+  'k_propinquity':{ title:'Propinquity',                  medium:'Pencil drawing', location:'Gallery Wall', wpos:[12.80,1.65,-1.64],  desc:`A face fills the frame completely — not a likeness but a closeness. Propinquity: the quality of nearness. The extreme crop removes all context, leaving only the texture of skin, the shadow of a brow, the suggestion of an eye. It is the most intimate work in the collection.` },
+  'k_londoneye':  { title:'The London Eye',               medium:'Pencil drawing', location:'Gallery Wall', wpos:[8.81,1.65,-1.09],   desc:`The London Eye at night, drawn in graphite — the great wheel reflected in the Thames below, the city skyline reaching behind it. Richard renders the spokes catching light against a dark sky with the eye of someone who finds the mechanical beautiful.` },
+  'k_pug':        { title:'Pug — Two Short Planks',       medium:'Pencil drawing', location:'Gallery Wall', wpos:[7.95,1.65,-1.31],   desc:`A pug stares out from a large silver frame with the expression pugs perpetually wear — somewhere between dignity and bewilderment. The words "Two Short Planks" are lettered beneath. Richard is at his most affectionate and most wry: a portrait that clearly adores its subject.` },
+  'k_guineapig':  { title:'Guinea Pig',                   medium:'Pencil drawing', location:'Gallery Wall', wpos:[1.26,1.65,-1.65],   desc:`A guinea pig peers from the picture plane with the alert, slightly suspicious expression of small creatures who know they are being studied. Richard draws every strand of fur with a careful hand. The warm wooden frame suits the subject's domestic charm perfectly.` },
+  'k_pomeranian': { title:'Pomeranian–Border Terrier',    medium:'Pencil drawing', location:'Gallery Wall', wpos:[1.26,1.65,-1.65],   desc:`A small dog with wild fur and bright eyes sits for its portrait with more patience than most subjects manage. Richard draws every tufted strand of the Pomeranian-Border Terrier cross with close attention — a portrait that captures not just appearance but unmistakable personality.` },
+  'k_seal':       { title:'Seal',                         medium:'Pencil drawing', location:'Gallery Wall', wpos:[-10.30,1.65,-1.44], desc:`A seal turns to face the viewer, its whiskered muzzle and dark liquid eye rendered in extraordinary detail. Richard builds tone slowly in graphite until the animal's wet sheen seems to catch the gallery light. A portrait of great stillness — the creature between one dive and the next.` },
+  'k_jaguar':     { title:'Jaguar E-Type Series 2',       medium:'Pencil drawing', location:'Gallery Wall', wpos:[-10.30,1.65,-1.44], desc:`A Jaguar E-Type Series 2 drawn in pencil with the reverence of someone who has spent a long time looking at this car. Richard captures the long bonnet, the fastback roofline, the wire wheels — every detail recorded with the care usually reserved for living subjects.` },
+  'k_scarlett':   { title:'Scarlett',                     medium:'Pencil drawing', location:'Gallery Wall', wpos:[3.45,1.65,-1.60],   desc:`Scarlett is drawn with warmth and precision — the portrait of a woman caught in a moment of ease, her expression open and natural. Richard's pencil work captures the light in her hair and the particular quality of a smile that belongs to someone entirely comfortable being seen.` },
+  'k_simonjake':  { title:'Simon and Jake',               medium:'Pencil drawing', location:'Gallery Wall', wpos:[8.73,1.65,-1.57],   desc:`A pencil portrait of Simon — drawn with the close attention Richard gives to those he knows well. The graphite marks build a likeness that goes beyond surface appearance into something more quietly true, the kind of portrait that reveals character rather than merely recording features.` },
+  'k_dreamcatcher':{ title:'Dream Catcher',               medium:'Installation',   location:'Ceiling',       wpos:[1.91,2.50,-3.99],   desc:`Suspended above the gallery floor, the Dream Catcher asks visitors to look up — to resist the habit of keeping eyes level and earthbound. Richard's installation filters light through its woven form. Some things are only visible when you change your angle entirely.` },
+  'k_astonmartin':{ title:'Aston Martin',                 medium:'Pencil drawing', location:'Gallery Wall', wpos:[-2.14,1.65,-1.56],  desc:`An Aston Martin drawn in pencil with the reverence of someone who has looked at this car for a very long time. Richard captures the muscular bodywork, the low stance, dark hills behind it. A portrait of a machine rendered with the same care given to the animals nearby.` },
+};
+
+let scene,camera,renderer,mixer,clock,galleryScene,raycaster;
+let locked=false,panelOpen=false,yaw=Math.PI,pitch=0;
+const keys={};
+let nearest=null,discovered=new Set();
+let audioCtx=null,audioMuted=false,masterGain=null;
+let isMoving=false,stepTimer=0;
+let joyActive=false,joyId=null,joyDX=0,joyDY=0;
+const JOY_MAX=27;
+
+function sp(p,t){document.getElementById('pf').style.width=p+'%';document.getElementById('pt').textContent=t;}
+
+function beginLoad(){
+  document.getElementById('entry').classList.add('out');
+  setTimeout(()=>{
+    document.getElementById('entry').style.display='none';
+    document.getElementById('loader').style.display='flex';
+    sp(2,'Starting Three.js…');
+    // Wait until THREE is available (CDN may still be loading)
+    function waitForThree(){
+      if(typeof THREE !== 'undefined'){setTimeout(initAndLoad,50);}
+      else setTimeout(waitForThree,50);
+    }
+    waitForThree();
+  },1200);
+}
+
+function initAndLoad(){
+  clock=new THREE.Clock();
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x111008);
+  scene.fog=new THREE.FogExp2(0x111008,0.018);
+  const canvas=document.getElementById('c');
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.4;
+  renderer.shadowMap.enabled=true;
+  camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.01,200);
+  camera.position.set(14.0,1.65,-0.5);
+  camera.rotation.order='YXZ';
+  camera.rotation.y=yaw;
+  scene.add(new THREE.AmbientLight(0xfff8e8,1.8));
+  const sun=new THREE.DirectionalLight(0xfff0d0,2.0);
+  sun.position.set(5,10,5);sun.castShadow=true;scene.add(sun);
+  const fill=new THREE.DirectionalLight(0x8090cc,0.6);
+  fill.position.set(-5,3,-3);scene.add(fill);
+  const warm=new THREE.PointLight(0xc9a84c,1.2,30);
+  warm.position.set(2,3,0);scene.add(warm);
+  window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+  raycaster=new THREE.Raycaster();
+  setupInput();setupJoystick();
+  sp(8,'Loading loaders…');loadLoaders();
+}
+
+function loadLoaders(){
+  const s1=document.createElement('script');
+  s1.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+  s1.onload=()=>{
+    const s2=document.createElement('script');
+    s2.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js';
+    s2.onload=()=>{sp(15,'Decoding 3D data…');setTimeout(parseGLB,50);};
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+
+function parseGLB(){
+  const dataUrl = GLB_URL; // loads from same directory
+  sp(20,'Initialising Draco decoder…');
+  const draco=new THREE.DRACOLoader();
+  draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+  draco.setDecoderConfig({type:'js'});draco.preload();
+  const loader=new THREE.GLTFLoader();
+  loader.setDRACOLoader(draco);
+  sp(25,'Parsing geometry…');
+  loader.load(dataUrl,
+    (gltf)=>{
+      sp(95,'Uploading to GPU…');
+      galleryScene=gltf.scene;scene.add(galleryScene);
+      // Exact Three.js mesh names (spaces/special chars -> underscores)
+      const MESH_TO_KEY={
+        'Loveknot_and_tess_Loveknot_Manual_Bake_0':'k_loveknot',
+        'boat_boat_manual_bake_0':'k_boat',
+        'end_frame_end_frame_manual_bake_0':'k_endframe',
+        'horse_and_squirrel_seal_manual_bake_0':'k_seal',
+        'Eddie_and_horse_propinquity_early_manual_bake_0':'k_propinquity',
+        'Object003_eddie_manuel_bake_0':'k_propinquity',
+        'Object009_propinquity_manual_bake_0':'k_propinquity',
+        'jake_and_london_eye_london_eye_manual_bake_0':'k_londoneye',
+        'SIMON_AND_JAKE_simon_manual_bake_0':'k_pug',
+        'weeebo_and_tiggy_weebo_manual_bake_0':'k_guineapig',
+        'seal_2_jag_manual_bake_0':'k_jaguar',
+        'scarlett_frame_scarlett_manual_bake_0':'k_scarlett',
+        'jakeframe_jake_manua_bake_0':'k_simonjake',
+        'dream_catcher_dream_catcher_0':'k_dreamcatcher',
+        'dream_catcher_left_dream_catcher_0':'k_dreamcatcher',
+        'dream_catcher_right_dream_catcher_0':'k_dreamcatcher',
+        'aston_manual_bake_aston_manual_bake_0':'k_astonmartin',
+        'Object005_squirrel_manual_bake_0':'k_squirrel',
+        'Object010_squirrel_manual_bake_0':'k_squirrel',
+        'Object006_tess_manual_bake_0':'k_jag',
+        'Object007_tiggy_manual_bake_0':'k_pomeranian',
+      };
+      galleryScene.traverse(obj=>{
+        if(!obj.isMesh)return;
+        const key=MESH_TO_KEY[obj.name];
+        if(key)obj.userData.artworkKey=key;
+      });
+      if(gltf.animations&&gltf.animations.length){
+        mixer=new THREE.AnimationMixer(galleryScene);
+        gltf.animations.forEach(c=>mixer.clipAction(c).play());
+      }
+      sp(100,'Welcome');setTimeout(showScene,500);
+    },
+    (xhr)=>{
+      const p=xhr.total?Math.round(25+(xhr.loaded/xhr.total)*65):Math.min(88,Math.round(25+(xhr.loaded/52000000)*65));
+      sp(p,'Parsing geometry… '+Math.round(xhr.loaded/1024/1024)+'MB');
+    },
+    (err)=>{
+      console.error(err);
+      document.getElementById('loader').innerHTML='<div style="text-align:center;padding:40px;font-family:Cormorant Garamond,serif;color:#c9a84c;font-size:20px">Load failed — check console</div>';
+    }
+  );
+}
+
+function showScene(){
+  document.getElementById('loader').classList.add('out');
+  setTimeout(()=>document.getElementById('loader').style.display='none',1000);
+  document.getElementById('c').classList.add('vis');
+  document.getElementById('hud').classList.add('vis');
+  document.getElementById('counter').classList.add('vis');
+  document.getElementById('audio-btn').classList.add('vis');
+  updateCounter();startAudio();startLoop();
+}
+
+function startLoop(){
+  function tick(){
+    requestAnimationFrame(tick);
+    const dt=Math.min(clock.getDelta(),0.05);
+    if(mixer)mixer.update(dt);
+    move(dt);checkNear();updateAudio(dt);
+    renderer.render(scene,camera);
+  }
+  tick();
+}
+
+const SPEED=5.0;
+function move(dt){
+  const spd=SPEED*dt;
+  const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  let moving=false;
+  if(locked){
+    if(keys['KeyW']||keys['ArrowUp']){camera.position.addScaledVector(fwd,spd);moving=true;}
+    if(keys['KeyS']||keys['ArrowDown']){camera.position.addScaledVector(fwd,-spd);moving=true;}
+    if(keys['KeyA']||keys['ArrowLeft']){camera.position.addScaledVector(right,-spd);moving=true;}
+    if(keys['KeyD']||keys['ArrowRight']){camera.position.addScaledVector(right,spd);moving=true;}
+  }
+  if(joyActive&&(Math.abs(joyDX)>2||Math.abs(joyDY)>2)){
+    camera.position.addScaledVector(fwd,-joyDY/JOY_MAX*spd);
+    camera.position.addScaledVector(right,joyDX/JOY_MAX*spd);
+    moving=true;
+  }
+  camera.position.y=1.65;isMoving=moving;
+}
+
+function checkNear(){
+  if(panelOpen)return;
+  let found=null;
+  if(galleryScene&&locked){
+    raycaster.setFromCamera({x:0,y:0},camera);
+    const hits=raycaster.intersectObjects(galleryScene.children,true);
+    for(const hit of hits){
+      if(hit.distance>12)break;
+      const key=hit.object.userData&&hit.object.userData.artworkKey;
+      if(key){found=key;break;}
+    }
+  }
+  const ph=document.getElementById('phint');
+  if(found!==nearest){
+    nearest=found;
+    if(found){ph.textContent='[ E ] or [ Click ] — '+ARTWORKS[found].title;ph.classList.add('show');}
+    else ph.classList.remove('show');
+  }
+}
+
+function setupInput(){
+  document.addEventListener('keydown',e=>{
+    keys[e.code]=true;
+    if(e.code==='KeyE'&&locked&&!panelOpen&&nearest)openPanel(nearest);
+    if(e.code==='Escape'&&panelOpen)closePanel();
+  });
+  document.addEventListener('keyup',e=>{keys[e.code]=false;});
+  document.addEventListener('mousemove',e=>{
+    if(!locked)return;
+    yaw-=e.movementX*0.0018;pitch-=e.movementY*0.0018;
+    pitch=Math.max(-1.1,Math.min(1.1,pitch));
+    camera.rotation.y=yaw;camera.rotation.x=pitch;
+  });
+  document.addEventListener('pointerlockchange',()=>{
+    locked=!!document.pointerLockElement;
+    document.getElementById('ctl').classList.toggle('hidden',locked);
+    document.getElementById('esch').classList.toggle('vis',locked);
+    if(!locked&&!panelOpen)document.getElementById('ctl').classList.remove('hidden');
+  });
+  document.getElementById('c').addEventListener('click',()=>{
+    if(panelOpen)return;
+    if(!locked){doLock();return;}
+    if(nearest)openPanel(nearest);
+  });
+  document.getElementById('c').addEventListener('touchend',e=>{
+    if(panelOpen)return;
+    if(nearest){e.preventDefault();openPanel(nearest);}
+  },{passive:false});
+}
+
+function doLock(){document.getElementById('c').requestPointerLock();}
+
+function setupJoystick(){
+  const base=document.getElementById('joy-base');
+  const knob=document.getElementById('joy-knob');
+  base.addEventListener('touchstart',e=>{e.preventDefault();joyActive=true;joyId=e.changedTouches[0].identifier;},{passive:false});
+  document.addEventListener('touchmove',e=>{
+    if(!joyActive)return;
+    for(const t of e.changedTouches){
+      if(t.identifier===joyId){
+        const rect=base.getBoundingClientRect();
+        let dx=t.clientX-(rect.left+rect.width/2),dy=t.clientY-(rect.top+rect.height/2);
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist>JOY_MAX){dx=dx/dist*JOY_MAX;dy=dy/dist*JOY_MAX;}
+        joyDX=dx;joyDY=dy;
+        knob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
+        break;
+      }
+    }
+  },{passive:false});
+  document.addEventListener('touchend',e=>{
+    for(const t of e.changedTouches){if(t.identifier===joyId){joyActive=false;joyDX=0;joyDY=0;knob.style.transform='translate(-50%,-50%)';break;}}
+  });
+  let lookId=null,lastLX=0,lastLY=0;
+  document.getElementById('c').addEventListener('touchstart',e=>{
+    for(const t of e.changedTouches){if(t.clientX>window.innerWidth/2&&lookId===null&&!panelOpen){lookId=t.identifier;lastLX=t.clientX;lastLY=t.clientY;}}
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(lookId===null)return;
+    for(const t of e.changedTouches){
+      if(t.identifier===lookId){
+        yaw-=(t.clientX-lastLX)*0.004;pitch-=(t.clientY-lastLY)*0.004;
+        pitch=Math.max(-1.1,Math.min(1.1,pitch));
+        camera.rotation.y=yaw;camera.rotation.x=pitch;
+        lastLX=t.clientX;lastLY=t.clientY;break;
+      }
+    }
+  },{passive:true});
+  document.addEventListener('touchend',e=>{for(const t of e.changedTouches){if(t.identifier===lookId){lookId=null;break;}}});
+}
+
+function openPanel(key){
+  panelOpen=true;
+  const a=ARTWORKS[key];
+  document.getElementById('ptitle').textContent=a.title;
+  document.getElementById('pmeta').innerHTML=`Medium &nbsp;·&nbsp; ${a.medium}<br>Location &nbsp;·&nbsp; ${a.location}<br>Gallery &nbsp;·&nbsp; Richard's Art Gallery`;
+  document.getElementById('airesp').textContent='';
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('phint').classList.remove('show');
+  document.getElementById('ctl').classList.add('hidden');
+  document.exitPointerLock();
+  if(!discovered.has(key)){discovered.add(key);updateCounter();}
+  duckAudio(true);
+  typewriterReveal(a.desc);
+}
+
+function closePanel(){
+  panelOpen=false;nearest=null;
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('ctl').classList.remove('hidden');
+  duckAudio(false);
+}
+
+function typewriterReveal(text){
+  const el=document.getElementById('airesp');
+  el.textContent='';
+  const words=text.split(' ');
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>=words.length){clearInterval(iv);return;}
+    el.textContent+=(i>0?' ':'')+words[i++];
+  },38);
+}
+
+function updateCounter(){
+  document.getElementById('counter').textContent=discovered.size+' / '+Object.keys(ARTWORKS).length+' artworks discovered';
+}
+
+// ── AUDIO ──
+let padGain=null,windGain=null,pianoScheduler=null;
+
+function startAudio(){
+  try{
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    masterGain=audioCtx.createGain();
+    masterGain.gain.setValueAtTime(0,audioCtx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0.7,audioCtx.currentTime+4);
+    masterGain.connect(audioCtx.destination);
+    buildPad();buildWind();schedulePiano();scheduleBirds();
+  }catch(e){console.warn('Audio failed',e);}
+}
+
+function buildPad(){
+  if(!audioCtx)return;
+  const rev=createReverb(4.5);
+  padGain=audioCtx.createGain();padGain.gain.value=0.12;
+  padGain.connect(rev);rev.connect(masterGain);
+  [110,110.3,165,165.2,220,220.15].forEach((f,i)=>{
+    const o=audioCtx.createOscillator();o.type='sine';o.frequency.value=f;
+    const g=audioCtx.createGain();g.gain.value=i<2?0.4:i<4?0.25:0.15;
+    o.connect(g);g.connect(padGain);o.start();
+    const lfo=audioCtx.createOscillator();lfo.frequency.value=0.05+i*0.007;
+    const lg=audioCtx.createGain();lg.gain.value=0.015;
+    lfo.connect(lg);lg.connect(g.gain);lfo.start();
+  });
+}
+
+function buildWind(){
+  if(!audioCtx)return;
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*3,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const src=audioCtx.createBufferSource();src.buffer=buf;src.loop=true;
+  const f1=audioCtx.createBiquadFilter();f1.type='bandpass';f1.frequency.value=320;f1.Q.value=0.5;
+  const f2=audioCtx.createBiquadFilter();f2.type='lowpass';f2.frequency.value=800;
+  windGain=audioCtx.createGain();windGain.gain.value=0.06;
+  const lfo=audioCtx.createOscillator();lfo.frequency.value=0.08;
+  const lg=audioCtx.createGain();lg.gain.value=0.03;
+  lfo.connect(lg);lg.connect(windGain.gain);lfo.start();
+  src.connect(f1);f1.connect(f2);f2.connect(windGain);windGain.connect(masterGain);src.start();
+}
+
+const PENTA=[261.63,293.66,329.63,392.0,440.0,523.25,587.33,659.25];
+function schedulePiano(){
+  if(!audioCtx)return;
+  const rev=createReverb(3.2);
+  const pg=audioCtx.createGain();pg.gain.value=0.18;pg.connect(rev);rev.connect(masterGain);
+  function playNote(){
+    if(!audioCtx||audioMuted)return;
+    const freq=PENTA[Math.floor(Math.random()*PENTA.length)]*(Math.random()<0.3?0.5:1);
+    const o=audioCtx.createOscillator();o.type='triangle';o.frequency.value=freq;
+    const g=audioCtx.createGain();const now=audioCtx.currentTime;
+    g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(0.6,now+0.04);g.gain.exponentialRampToValueAtTime(0.001,now+2.8);
+    o.connect(g);g.connect(pg);o.start(now);o.stop(now+3);
+    if(Math.random()<0.4){
+      const o2=audioCtx.createOscillator();o2.type='sine';o2.frequency.value=freq*2;
+      const g2=audioCtx.createGain();
+      g2.gain.setValueAtTime(0,now);g2.gain.linearRampToValueAtTime(0.2,now+0.06);g2.gain.exponentialRampToValueAtTime(0.001,now+2.2);
+      o2.connect(g2);g2.connect(pg);o2.start(now);o2.stop(now+2.5);
+    }
+    pianoScheduler=setTimeout(playNote,(3+Math.random()*7)*1000);
+  }
+  pianoScheduler=setTimeout(playNote,2000);
+}
+
+function scheduleBirds(){
+  if(!audioCtx)return;
+  function chirp(){
+    if(!audioCtx||audioMuted)return;
+    const rev=createReverb(2.0);
+    const bg=audioCtx.createGain();bg.gain.value=0.22;bg.connect(rev);rev.connect(masterGain);
+    const n=1+Math.floor(Math.random()*3);
+    for(let c=0;c<n;c++){
+      const t=audioCtx.currentTime+c*0.18;
+      const bf=1800+Math.random()*1400;
+      const o=audioCtx.createOscillator();o.type='sine';
+      o.frequency.setValueAtTime(bf,t);o.frequency.linearRampToValueAtTime(bf*1.18,t+0.04);o.frequency.linearRampToValueAtTime(bf*0.92,t+0.09);
+      const g=audioCtx.createGain();
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.7,t+0.015);g.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+      o.connect(g);g.connect(bg);o.start(t);o.stop(t+0.15);
+    }
+    setTimeout(chirp,(8+Math.random()*20)*1000);
+  }
+  setTimeout(chirp,4000+Math.random()*6000);
+}
+
+function createReverb(dur){
+  const conv=audioCtx.createConvolver();
+  const rate=audioCtx.sampleRate,len=rate*dur;
+  const buf=audioCtx.createBuffer(2,len,rate);
+  for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);}
+  conv.buffer=buf;return conv;
+}
+
+function updateAudio(dt){
+  if(!audioCtx||audioMuted||!isMoving)return;
+  stepTimer-=dt;
+  if(stepTimer<=0){stepTimer=0.52;playFootstep();}
+}
+
+function playFootstep(){
+  if(!audioCtx)return;
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.08,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(audioCtx.sampleRate*0.018));
+  const src=audioCtx.createBufferSource();src.buffer=buf;
+  const f=audioCtx.createBiquadFilter();f.type='bandpass';f.frequency.value=380;f.Q.value=1.2;
+  const g=audioCtx.createGain();g.gain.value=0.09;
+  src.connect(f);f.connect(g);g.connect(masterGain);src.start();src.stop(audioCtx.currentTime+0.09);
+}
+
+function duckAudio(duck){
+  if(!masterGain||!audioCtx)return;
+  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(duck?0.15:0.7,audioCtx.currentTime+0.8);
+}
+
+function toggleAudio(){
+  if(!audioCtx)return;
+  audioMuted=!audioMuted;
+  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(audioMuted?0:0.7,audioCtx.currentTime+0.5);
+  document.getElementById('audio-btn').textContent=audioMuted?'♪ UNMUTE':'♪ MUTE';
+}
+</script>
