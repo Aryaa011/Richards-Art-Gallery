@@ -2,6 +2,7 @@
 
 A first-person 3D museum experience built with Three.js. Walk through Richard's personal art gallery, discover pencil artworks, and read descriptions
 
+live demo: https://richardsartgallery.netlify.app
 
 ## Repo Structure
 
